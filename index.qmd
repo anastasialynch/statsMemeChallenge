@@ -1,0 +1,739 @@
+---
+title: "Selection Bias & Missing Data Challenge - Part 2"
+subtitle: "Creating a Statistics Meme: Visualizing Selection Bias"
+format:
+  html: default
+execute:
+  echo: true
+  eval: true
+---
+
+# 🎨 Selection Bias & Missing Data Challenge - Part 2
+
+::: {.callout-important}
+## 📊 Challenge Requirements
+
+**Your Task:** Create a four-panel statistics meme demonstrating selection bias using your original image and stippled version from [Part 1](https://flyaflya.github.io/stippleChallenge/).
+
+**Prerequisites:** Completed [Part 1](https://flyaflya.github.io/stippleChallenge/) with:
+
+1. Your original image file
+2. Your stippled image (numpy array or R matrix)
+3. Image dimensions (height and width)
+
+**Deliverables:**
+
+1. Four-panel meme (1×4 or 2×2 layout) with labels: Reality, Your Model, Selection Bias, Estimate
+2. Code (Python or R) that generates the meme
+3. GitHub Pages site named "statsMemeChallenge" with your meme and explanation
+
+**Repository Information:**
+
+- **Source/Starter File:** Available in the main repository at [https://github.com/flyaflya/statsMemeChallenge](https://github.com/flyaflya/statsMemeChallenge)
+- **Challenge Read Online:** View the challenge instructions at [https://flyaflya.github.io/statsMemeChallenge](https://flyaflya.github.io/statsMemeChallenge)
+- **Your Submission:** Fork this challenge and create your GitHub Pages site at `https://[your-username].github.io/statsMemeChallenge/`
+:::
+
+## The Problem: Visualizing Selection Bias
+
+Selection bias occurs when observed data isn't representative of the population. Your meme will show:
+
+- **Reality**: Your original image (truth)
+- **Your Model**: Your stippled image (representation)
+- **Selection Bias**: A bold letter "S" (systematic missing data pattern)
+- **Estimate**: Stippled image with "S" mask applied (biased estimate)
+
+**Key Concept:** Images are simply matrices—2D arrays where each value represents a pixel (0.0 = black, 1.0 = white). Your stippled image is a matrix with black dots (data points) on a white background. Selection bias removes some of these pixels (data points) in a systematic pattern (the "S"), creating a biased estimate. You'll use image composition tools (matplotlib in Python, imager in R) to arrange these matrices into a memorable visualization.
+
+## Exemplar
+
+![Exemplar statistics meme showing the four-panel structure: Reality (original image), Your Model (stippled version), Selection Bias (letter S), and Estimate (masked stippled image)](statistics_meme.png)
+
+**Your Goal:** Recreate this structure using **your own** original and stippled images from [Part 1](https://flyaflya.github.io/stippleChallenge/).
+
+## Why This Matters
+
+This exercise is fundamentally about **walking AI through a process** to create valuable output. You're not just coding—you're collaborating with AI to transform abstract statistical concepts into a memorable visual artifact. The meme you create will serve as a mental anchor: whenever you think about selection bias in the future, you'll ask yourself: **"Does my sample match my population of interest?"** This visualization will stick with you for the rest of your life, making it easier to recognize and address selection bias in real-world data analysis.
+
+## Getting Started: Repository Setup 🚀
+
+::: {.callout-important}
+## 📁 Repository Setup Instructions
+
+**Step 1:** Fork the starter repository:
+
+- Navigate to [https://github.com/flyaflya/statsMemeChallenge](https://github.com/flyaflya/statsMemeChallenge)
+- Fork the repository to your GitHub account (this creates `https://github.com/[your-username]/statsMemeChallenge`)
+
+**Step 2:** Clone your forked repository locally using Cursor (or VS Code)
+
+**Step 3:** Set up GitHub Pages:
+
+- Go to your repository settings (click the "Settings" tab in your GitHub repository)
+- Scroll down to the "Pages" section in the left sidebar
+- Under "Source", select "Deploy from a branch"
+- Choose "main" branch and "/ (root)" folder
+- Click "Save"
+- Your site will be available at: `https://[your-username].github.io/statsMemeChallenge/`
+- **Note:** It may take a few minutes for the site to become available after enabling Pages
+
+**Step 4:** You're ready to start! Use the `index.qmd` file as your starting point.
+:::
+
+## Implementation Guide
+
+::: {.callout-important}
+## 📝 Code Visibility in Final HTML
+
+**Important:** When you create your final `index.qmd` file, use `echo: false` for all code chunks that generate the meme. The rendered HTML should show only the meme image and your explanation, not the code. The code should still be in the `.qmd` file (so it can be rendered), but it won't be displayed in the HTML output.
+:::
+
+### Step 1: Load Your Images
+
+::: {.panel-tabset}
+
+### Python
+
+```{python}
+#| label: load-images
+#| echo: true
+#| eval: false
+
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Load original image
+original_img = Image.open('your_image.jpg')
+if original_img.mode != 'L':
+    original_img = original_img.convert('L')
+original_array = np.array(original_img, dtype=np.float32) / 255.0
+
+# Load stippled image (from Part 1 - see https://flyaflya.github.io/stippleChallenge/)
+stipple_array = np.load('stippleImage.npy')
+
+print(f"Original: {original_array.shape}, Stipple: {stipple_array.shape}")
+```
+
+### R
+
+```{r}
+#| label: load-images-r
+#| echo: true
+#| eval: false
+
+library(imager)
+
+# Load original image
+original_img <- load.image('your_image.jpg')
+if(dim(original_img)[3] == 3) {
+  original_img <- grayscale(original_img)
+}
+# Convert to matrix [h, w] and normalize
+arr <- as.array(original_img)
+original_array <- t(arr[,,1,1]) / max(arr)
+
+# Load stippled image (from Part 1 - see https://flyaflya.github.io/stippleChallenge/)
+# Adjust based on how you saved it - could be .RData, .rds, or regenerate
+# stipple_array <- readRDS('stippleImage.rds')
+
+cat("Original dimensions:", dim(original_array), "\n")
+```
+
+:::
+
+### Step 2: Create the Block Letter "S"
+
+Create a matrix matching your image dimensions with a bold letter "S" rendered as black pixels on a white background.
+
+**Hints:**
+
+- Use image drawing libraries to render text (PIL/Pillow in Python, `magick` in R)
+- Create a white background matrix matching your image dimensions (height × width)
+- Render a bold letter "S" centered in the image (try 80-90% of image height for font size)
+- Convert the result to a matrix with values in [0, 1] range (0.0 = black, 1.0 = white)
+- The "S" should be clearly visible and fill most of the image space
+
+### Step 3: Create the Masked Estimate
+
+Your stippled image is a matrix where black dots (0.0) represent data points and white (1.0) is background. The "S" matrix shows where selection bias occurs (black "S" = missing data). To create the masked estimate, remove stipple points (set to white) wherever the "S" is black.
+
+**Hints:**
+
+- Create a binary mask by thresholding the "S" image (e.g., pixels < 0.5 are part of the "S")
+- Apply the mask to your stippled image: where the "S" is black, set those pixels to white (1.0)
+- Where the "S" is white, keep the original stipple values
+- This creates the visual effect of "missing data" in the shape of the "S"
+- Use conditional assignment or boolean masking (e.g., `np.where()` in Python, `ifelse()` in R)
+
+### Step 4: Assemble the Four-Panel Meme
+
+Use the image composition capabilities of matplotlib (Python) or imager (R) to arrange your four matrices as panels in a single figure.
+
+**Hints:**
+
+- Create a multi-panel layout (1×4 for horizontal, 2×2 for grid)
+- Display each matrix as a grayscale image: original, stippled, "S", and masked stippled
+- Add clear labels: "Reality", "Your Model", "Selection Bias", "Estimate"
+- Use minimal spacing between panels for a clean, professional look
+- Consider a light background color (like pink) to make panels stand out
+- Save with high DPI (150-300) for quality output
+- In Python: use `plt.subplots()` and `imshow()` for each panel
+- In R: use `par(mfrow = ...)` and `plot()` with imager's `as.cimg()` to convert matrices
+
+## Tips for Success
+
+1. **Font Selection**: Use bold fonts (Arial Bold, DejaVu Sans Bold) for the "S"
+2. **Threshold Tuning**: Adjust `threshold` (typically 0.5) for clean mask edges
+3. **Spacing**: Minimize gaps between panels (`wspace=0`, `hspace=0`)
+4. **Background**: Light pink background helps panels stand out
+5. **Save Quality**: Use DPI 150-300 for crisp output
+6. **Layout Choice**: 1×4 for wide images, 2×2 for square/tall images
+
+## Submission Requirements
+
+**Important:** Your final GitHub Pages site should be a clean, professional presentation that focuses on the meme and explanation, not the code.
+
+**Repository Contents:**
+
+- [ ] `index.qmd` file with your code to generate the meme
+- [ ] Any supporting code files (Python `.py` files or R scripts) that your `index.qmd` references
+- [ ] Your original image and stippled image files (or `.npy`/`.rds` files) needed to generate the meme
+- [ ] Rendered HTML output (generated by rendering the `index.qmd` file)
+
+**HTML Output Requirements:**
+
+- [ ] **Code should NOT be visible** in the rendered HTML (use `echo: false` for code chunks that generate the meme)
+- [ ] The HTML should display **only the four-panel meme image**
+- [ ] Include a **brief explanation** of selection bias and how your meme demonstrates it
+- [ ] Professional, clean presentation suitable for sharing
+
+**Submission Checklist:**
+
+- [ ] All four panels: Reality, Your Model, Selection Bias, Estimate
+- [ ] Clear labels on each panel
+- [ ] Bold, properly-sized "S" letter
+- [ ] Masked estimate correctly removes stipples within "S"
+- [ ] Clean layout with minimal spacing
+- [ ] Code runs without errors and generates the meme
+- [ ] `index.qmd` file in repository with `echo: false` for meme generation code
+- [ ] Supporting code files (if any) included in repository
+- [ ] Document rendered to HTML successfully (meme generated, code hidden)
+- [ ] HTML files uploaded to your repository
+- [ ] GitHub Pages enabled and working
+- [ ] Site accessible at `https://[your-username].github.io/statsMemeChallenge/`
+- [ ] Final site shows only the meme and explanation (no visible code)
+- [ ] Brief explanation of selection bias included in HTML
+
+**Remember:** Create a memorable, educational visualization that helps others understand selection bias. This is about more than completing an assignment—it's about building a lasting understanding through creative collaboration with AI.
+
+## Implementation: Creating Your Statistics Meme
+
+Here's the complete R code to create your four-panel statistics meme:
+
+```{r}
+#| label: stippling-functions-r
+#| echo: false
+#| eval: true
+#| message: false
+#| warning: false
+
+# Stippling functions from Part 1 - needed for generating the stippled image
+
+compute_importance <- function(gray_img, 
+                                extreme_downweight = 0.5,
+                                extreme_threshold_low = 0.4,
+                                extreme_threshold_high = 0.8,
+                                extreme_sigma = 0.1,
+                                mid_tone_boost = 0.4,
+                                mid_tone_sigma = 0.2) {
+  # Clip image to [0, 1]
+  I <- pmax(pmin(gray_img, 1.0), 0.0)
+  
+  # Invert brightness
+  I_inverted <- 1.0 - I
+  
+  # Dark mask
+  dark_mask <- exp(-((I - 0.0)^2) / (2.0 * (extreme_sigma^2)))
+  dark_mask[I >= extreme_threshold_low] <- 0.0
+  if(max(dark_mask) > 0) {
+    dark_mask <- dark_mask / max(dark_mask)
+  }
+  
+  # Light mask
+  light_mask <- exp(-((I - 1.0)^2) / (2.0 * (extreme_sigma^2)))
+  light_mask[I <= extreme_threshold_high] <- 0.0
+  if(max(light_mask) > 0) {
+    light_mask <- light_mask / max(light_mask)
+  }
+  
+  # Combine masks
+  extreme_mask <- pmax(dark_mask, light_mask)
+  
+  # Apply downweighting
+  importance <- I_inverted * (1.0 - extreme_downweight * extreme_mask)
+  
+  # Mid-tone boost
+  mid_tone_center <- 0.65
+  mid_tone_gaussian <- exp(-((I - mid_tone_center)^2) / (2.0 * (mid_tone_sigma^2)))
+  if(max(mid_tone_gaussian) > 0) {
+    mid_tone_gaussian <- mid_tone_gaussian / max(mid_tone_gaussian)
+  }
+  
+  importance <- importance * (1.0 + mid_tone_boost * mid_tone_gaussian)
+  
+  # Normalize
+  m <- min(importance)
+  M <- max(importance)
+  if(M > m) {
+    importance <- (importance - m) / (M - m)
+  }
+  
+  return(importance)
+}
+
+toroidal_gaussian_kernel <- function(h, w, sigma) {
+  y <- 0:(h-1)
+  x <- 0:(w-1)
+  
+  # Compute toroidal distances
+  dy <- pmin(y, h - y)
+  dx <- pmin(x, w - x)
+  
+  # Create distance matrices
+  dy_mat <- matrix(rep(dy, each = w), nrow = h, ncol = w)
+  dx_mat <- matrix(rep(dx, times = h), nrow = h, ncol = w)
+  
+  # Compute Gaussian
+  kern <- exp(-(dx_mat^2 + dy_mat^2) / (2.0 * sigma^2))
+  kern <- kern / sum(kern)  # Normalize
+  
+  return(kern)
+}
+
+# Helper function for true 2D circular shift (equivalent to np.roll)
+roll2d <- function(mat, shift_y = 0, shift_x = 0) {
+  h <- nrow(mat)
+  w <- ncol(mat)
+  sy <- ((shift_y %% h) + h) %% h
+  sx <- ((shift_x %% w) + w) %% w
+  rows <- if (sy == 0) 1:h else c((h - sy + 1):h, 1:(h - sy))
+  cols <- if (sx == 0) 1:w else c((w - sx + 1):w, 1:(w - sx))
+  mat[rows, cols, drop = FALSE]
+}
+
+void_and_cluster <- function(input_img, 
+                             percentage = 0.08,
+                             sigma = 0.9,
+                             content_bias = 0.9,
+                             importance_img = NULL,
+                             noise_scale_factor = 0.1) {
+  # Clip image to [0, 1]
+  I <- pmax(pmin(input_img, 1.0), 0.0)
+  h <- nrow(I)
+  w <- ncol(I)
+  
+  # Compute or use provided importance map
+  if(is.null(importance_img)) {
+    importance <- compute_importance(I)
+  } else {
+    importance <- pmax(pmin(importance_img, 1.0), 0.0)
+  }
+  
+  # Create toroidal Gaussian kernel for repulsion
+  kernel <- toroidal_gaussian_kernel(h, w, sigma)
+  
+  # Initialize energy field: lower energy → more likely to be picked
+  energy_current <- -importance * content_bias
+  
+  # Stipple buffer: start with white background; selected points become black dots
+  final_stipple <- matrix(1.0, nrow = h, ncol = w)
+  samples <- vector("list", as.integer(h * w * percentage))
+  
+  # Helper function to roll kernel to an arbitrary position
+  energy_splat <- function(y, x) {
+    roll2d(kernel, shift_y = y - 1, shift_x = x - 1)
+  }
+  
+  # Number of points to select
+  num_points <- as.integer(h * w * percentage)
+  
+  # Set seed for reproducibility
+  set.seed(42)
+  
+  # First point: pick min in a center window
+  cy <- as.integer(h / 2)
+  cx <- as.integer(w / 2)
+  r <- min(20L, as.integer(h / 10), as.integer(w / 10))
+  y_start <- max(1L, cy - r)
+  y_end <- min(h, cy + r)
+  x_start <- max(1L, cx - r)
+  x_end <- min(w, cx + r)
+  
+  region <- energy_current[y_start:y_end, x_start:x_end]
+  flat_idx <- which.min(region)
+  
+  # R is column-major
+  ry <- ((flat_idx - 1) %% nrow(region)) + 1
+  rx <- ((flat_idx - 1) %/% nrow(region)) + 1
+  y0 <- y_start + ry - 1
+  x0 <- x_start + rx - 1
+  
+  # Place first point
+  energy_current <- energy_current + energy_splat(y0, x0)
+  energy_current[y0, x0] <- Inf  # Prevent reselection
+  samples[[1]] <- c(y0, x0, I[y0, x0])
+  final_stipple[y0, x0] <- 0.0  # Black dot
+  
+  # Iterate
+  for(i in 2:num_points) {
+    # Add exploration noise that decreases over time
+    exploration <- 1.0 - ((i - 1) / num_points) * 0.5
+    noise <- matrix(rnorm(h * w, 0, noise_scale_factor * content_bias * exploration), 
+                    nrow = h, ncol = w)
+    energy_with_noise <- energy_current + noise
+    
+    # Find position with minimum energy
+    pos_flat <- which.min(energy_with_noise)
+    
+    # Column-major unflatten
+    y <- ((pos_flat - 1) %% h) + 1
+    x <- ((pos_flat - 1) %/% h) + 1
+    
+    # Add Gaussian splat to prevent nearby points from being selected
+    energy_current <- energy_current + energy_splat(y, x)
+    energy_current[y, x] <- Inf  # Prevent reselection
+    
+    # Record the sample
+    samples[[i]] <- c(y, x, I[y, x])
+    final_stipple[y, x] <- 0.0  # Black dot
+  }
+  
+  # Convert samples list to matrix
+  samples_matrix <- do.call(rbind, samples[1:num_points])
+  
+  return(list(stipple = final_stipple, samples = samples_matrix))
+}
+
+cat("Stippling functions loaded successfully\n")
+```
+
+```{r}
+#| label: prep-image-r
+#| echo: false
+#| eval: true
+#| depends: stippling-functions-r
+
+library(imager)
+
+# Check and install magick if needed
+if(!requireNamespace("magick", quietly = TRUE)) {
+  install.packages("magick", repos = "https://cran.rstudio.com/")
+}
+library(magick)
+
+# Load original image - using PNG format
+original_img <- load.image("index_files/libs/quarto-html/Anastasia Lynch - Original Image.png")
+
+# Convert to grayscale if needed
+if(dim(original_img)[3] == 3) {
+  original_img <- grayscale(original_img)
+}
+
+# Convert to matrix [height, width] and normalize to [0, 1]
+# Note: imager uses [x, y] indexing, so we transpose to get [row, col]
+arr <- as.array(original_img)
+original_array <- t(arr[,,1,1]) / max(arr)
+
+# Get dimensions
+img_height <- dim(original_array)[1]
+img_width <- dim(original_array)[2]
+
+# Resize if too large (match Part 1 behavior)
+max_size <- 512
+h <- img_height
+w <- img_width
+
+if(max(h, w) > max_size) {
+  scale <- max_size / max(h, w)
+  new_h <- max(1, round(h * scale))
+  new_w <- max(1, round(w * scale))
+  row_idx <- round(seq(0, h - 1, length.out = new_h)) + 1
+  col_idx <- round(seq(0, w - 1, length.out = new_w)) + 1
+  original_array <- original_array[row_idx, col_idx, drop = FALSE]
+  img_height <- new_h
+  img_width <- new_w
+  cat("Resized image to", new_h, "x", new_w, "for processing\n")
+}
+
+# Create img_matrix for stippling (normalized to [0, 1])
+max_val <- max(original_array)
+if(max_val == 0) {
+  stop("Image appears to be empty after loading.")
+}
+img_matrix <- original_array / max_val
+
+# Update original_array to match resized dimensions (for consistency)
+original_array <- img_matrix
+
+# Compute importance_map using compute_importance function
+importance_map <- compute_importance(img_matrix)
+
+cat("Original image dimensions:", img_height, "x", img_width, "\n")
+cat("Prepared img_matrix and importance_map for stippling\n")
+```
+
+```{r}
+#| label: generate-stipple-r
+#| echo: false
+#| message: false
+#| warning: false
+#| depends: prep-image-r
+
+# Option 1: Load existing stippled image (if available)
+stippled_image_path <- "C:/Users/13023/OneDrive/Desktop/stippleChallenge-1/index_files/figure-html/create-gif-1.png"
+
+if(file.exists(stippled_image_path)) {
+  cat("Loading existing stippled image from Part 1...\n")
+  stippled_img <- load.image(stippled_image_path)
+  
+  # Convert to grayscale if needed
+  if(dim(stippled_img)[3] == 3) {
+    stippled_img <- grayscale(stippled_img)
+  }
+  
+  # Convert to matrix and normalize
+  arr_stipple <- as.array(stippled_img)
+  stipple_array_temp <- t(arr_stipple[,,1,1]) / max(arr_stipple)
+  
+  # Resize to match current image dimensions if needed
+  if(any(dim(stipple_array_temp) != c(img_height, img_width))) {
+    cat("Resizing stippled image to match original dimensions...\n")
+    # Simple resize using imager
+    target_cimg <- as.cimg(matrix(0, nrow = img_height, ncol = img_width))
+    stippled_img_resized <- resize(stippled_img, size_x = img_width, size_y = img_height)
+    arr_resized <- as.array(stippled_img_resized)
+    stipple_array <- t(arr_resized[,,1,1]) / max(arr_resized)
+  } else {
+    stipple_array <- stipple_array_temp
+  }
+  
+  # Normalize to [0, 1] where 0 = black dots, 1 = white background
+  stipple_array <- pmin(pmax(stipple_array, 0), 1)
+  
+  cat("Loaded stippled image with dimensions:", dim(stipple_array), "\n")
+  cat("Stipple value range: [", min(stipple_array), ",", max(stipple_array), "]\n")
+  cat("Number of black pixels (stipples):", sum(stipple_array < 0.5), "\n")
+  
+} else {
+  # Option 2: Generate stippling pattern using void_and_cluster algorithm
+  cat("Stippled image not found, generating blue noise stippling pattern...\n")
+  stipple_result <- void_and_cluster(
+    img_matrix,
+    percentage = 0.08,
+    sigma = 0.9,
+    content_bias = 0.9,
+    importance_img = importance_map,
+    noise_scale_factor = 0.1
+  )
+  
+  stipple_pattern <- stipple_result$stipple
+  samples <- stipple_result$samples
+  
+  # stipple_pattern should be the matrix with black dots (0.0) on white background (1.0)
+  stipple_array <- stipple_pattern
+  
+  # Ensure stipple_array has correct dimensions matching img_matrix
+  if (any(dim(stipple_array) != c(img_height, img_width))) {
+    cat("Warning: Stipple dimensions don't match image dimensions\n")
+    cat("Stipple is:", dim(stipple_array), "but image is:", c(img_height, img_width), "\n")
+    # Update dimensions if stipple was resized
+    img_height <- nrow(stipple_array)
+    img_width <- ncol(stipple_array)
+  }
+  
+  cat("Generated", nrow(samples), "stipple points\n")
+  cat("Stipple pattern shape:", nrow(stipple_array), "x", ncol(stipple_array), "\n")
+  cat("Stipple value range: [", min(stipple_array), ",", max(stipple_array), "]\n")
+  cat("Number of black pixels (stipples):", sum(stipple_array < 0.5), "\n")
+}
+```
+
+```{r}
+#| label: create-block-letter-s
+#| echo: false
+#| eval: true
+#| depends: [prep-image-r, generate-stipple-r]
+
+# Use magick to render bold "S" letter
+# Create a temporary image with white background
+temp_img <- image_blank(width = img_width, height = img_height, color = "white")
+
+# Calculate font size (80-90% of image height)
+font_size <- round(min(img_height, img_width) * 0.8)
+
+# Render bold "S" centered on white background
+s_img <- image_annotate(
+  temp_img,
+  "S",
+  size = font_size,
+  gravity = "Center",
+  font = "Arial-Bold",
+  color = "black",
+  weight = 700
+)
+
+# Convert magick image to matrix
+# image_data returns normalized values [0, 1] where 0 = black, 1 = white
+s_img_data <- image_data(s_img, channels = "gray")
+s_matrix_temp <- as.numeric(s_img_data)
+
+# Reshape to matrix - need to check dimensions
+s_matrix <- matrix(s_matrix_temp, nrow = img_height, ncol = img_width, byrow = FALSE)
+
+# Ensure dimensions match
+if (nrow(s_matrix) != img_height || ncol(s_matrix) != img_width) {
+  # Try alternative reshaping
+  s_matrix <- matrix(s_matrix_temp, nrow = img_height, ncol = img_width, byrow = TRUE)
+}
+
+# image_data gives us: black = 0, white = 1
+# We want: black "S" letter = 0.0, white background = 1.0
+# Threshold to ensure clean binary image
+s_matrix[s_matrix < 0.5] <- 0.0  # Black pixels (the "S" letter)
+s_matrix[s_matrix >= 0.5] <- 1.0  # White pixels (background)
+
+cat("Block letter 'S' created with dimensions:", dim(s_matrix), "\n")
+cat("S matrix value range: [", min(s_matrix), ",", max(s_matrix), "]\n")
+```
+
+```{r}
+#| label: create-masked-estimate
+#| echo: false
+#| eval: true
+#| depends: [generate-stipple-r, create-block-letter-s]
+
+# Ensure dimensions match
+if (any(dim(s_matrix) != dim(stipple_array))) {
+  stop("Dimension mismatch: s_matrix is ", paste(dim(s_matrix), collapse="x"), 
+       " but stipple_array is ", paste(dim(stipple_array), collapse="x"))
+}
+
+# Create masked estimate: remove stipples where "S" is black
+# Where S is black (0.0), set stipple to white (1.0)
+# Where S is white (1.0), keep original stipple value
+
+# Create binary mask: S < 0.5 means it's part of the letter
+s_mask <- s_matrix < 0.5
+
+# Apply mask: where mask is TRUE (part of S), set to white (1.0)
+masked_stipple <- stipple_array
+masked_stipple[s_mask] <- 1.0
+
+cat("Masked estimate created\n")
+cat("Masked stipple dimensions:", dim(masked_stipple), "\n")
+cat("Number of pixels masked:", sum(s_mask), "\n")
+```
+
+```{r}
+#| label: assemble-four-panel-meme
+#| echo: false
+#| eval: true
+#| fig-width: 20
+#| fig-height: 6
+#| fig-cap: "Four-panel statistics meme: Reality, Your Model, Selection Bias, and Estimate"
+#| depends: [prep-image-r, generate-stipple-r, create-block-letter-s, create-masked-estimate]
+
+# Ensure all matrices have correct dimensions
+cat("Checking dimensions:\n")
+cat("Original:", dim(original_array), "\n")
+cat("Stipple:", dim(stipple_array), "\n")
+cat("S matrix:", dim(s_matrix), "\n")
+cat("Masked:", dim(masked_stipple), "\n")
+cat("Image height:", img_height, "width:", img_width, "\n")
+
+# Ensure all matrices match image dimensions
+if (any(dim(original_array) != c(img_height, img_width))) {
+  stop("Original array dimensions don't match")
+}
+if (any(dim(stipple_array) != c(img_height, img_width))) {
+  stop("Stipple array dimensions don't match")
+}
+if (any(dim(s_matrix) != c(img_height, img_width))) {
+  stop("S matrix dimensions don't match")
+}
+if (any(dim(masked_stipple) != c(img_height, img_width))) {
+  stop("Masked stipple dimensions don't match")
+}
+
+# Normalize all matrices to [0, 1] range for consistent display
+original_display <- (original_array - min(original_array)) / (max(original_array) - min(original_array) + 1e-10)
+# Ensure stipple is in [0, 1] range (0 = black dots, 1 = white background)
+stipple_display <- pmin(pmax(stipple_array, 0), 1)
+# S matrix should already be in [0, 1] range
+s_display <- pmin(pmax(s_matrix, 0), 1)
+# Masked should also be in [0, 1] range
+masked_display <- pmin(pmax(masked_stipple, 0), 1)
+
+# Convert to imager format - need to transpose
+# imager's as.cimg expects [width, height] when given a 2D matrix
+original_cimg <- as.cimg(t(original_display))
+stipple_cimg <- as.cimg(t(stipple_display))
+s_cimg <- as.cimg(t(s_display))
+masked_cimg <- as.cimg(t(masked_display))
+
+# Set up four-panel layout with light pink background
+# Reduced margins to minimize pink space, larger figure to make panels bigger
+par(mfrow = c(1, 4), mar = c(1, 0.5, 2.5, 0.5), bg = "#FFE6F0", oma = c(0.5, 0.5, 0.5, 0.5))
+
+# Set default title size for all plots
+par(cex.main = 3.5, font.main = 2)
+
+# Panel 1: Reality (Original Image)
+tryCatch({
+  plot(original_cimg, axes = FALSE, main = "Reality")
+}, error = function(e) {
+  cat("Error plotting original:", e$message, "\n")
+  image(t(original_display), col = gray(seq(0, 1, length.out = 256)), axes = FALSE, main = "Reality")
+})
+
+# Panel 2: Your Model (Stippled Image)
+tryCatch({
+  plot(stipple_cimg, axes = FALSE, main = "Your Model")
+}, error = function(e) {
+  cat("Error plotting stipple:", e$message, "\n")
+  image(t(stipple_display), col = gray(seq(0, 1, length.out = 256)), axes = FALSE, main = "Your Model")
+})
+
+# Panel 3: Selection Bias (Letter S)
+tryCatch({
+  plot(s_cimg, axes = FALSE, main = "Selection Bias")
+}, error = function(e) {
+  cat("Error plotting S:", e$message, "\n")
+  image(t(s_display), col = gray(seq(0, 1, length.out = 256)), axes = FALSE, main = "Selection Bias")
+})
+
+# Panel 4: Estimate (Masked Stippled)
+tryCatch({
+  plot(masked_cimg, axes = FALSE, main = "Estimate")
+}, error = function(e) {
+  cat("Error plotting masked:", e$message, "\n")
+  image(t(masked_display), col = gray(seq(0, 1, length.out = 256)), axes = FALSE, main = "Estimate")
+})
+```
+
+## Understanding Selection Bias Through Visualization
+
+Selection bias emerges when missing data follows a systematic pattern rather than occurring randomly. This visualization illustrates the concept using images as matrices, where each pixel represents a data point.
+
+The four panels tell a story about data integrity:
+
+- **Reality** captures the complete, unaltered image representing our entire population of interest. All information is present.
+
+- **Your Model** The stippled pattern represents the data points we actually collect, when properly selected, should reflect the whole.
+
+- **Selection Bias** reveals the problem. The letter "S" marks where data systematically goes missing. Unlike random gaps that don't distort our view, this systematic pattern creates a blind spot.
+
+- **Estimate** demonstrates the consequence. When we analyze only the available data, the stipples remaining after the bias removes information and creates a distorted picture that no longer matches reality.
+
+The key insight: systematic missingness corrupts our conclusions. Random missing data can be handled with proper statistical techniques, but when data disappears in predictable ways, our estimates become unreliable. This visualization serves as a practical reminder to question whether our samples truly represent the populations we seek to understand.
